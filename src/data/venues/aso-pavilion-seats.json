@@ -1,0 +1,58 @@
+{
+  "seats": [
+    {
+      "id": "A1",
+      "row": 0,
+      "col": 0,
+      "position": { "x": -0.55, "y": 0, "z": -10 },
+      "tier": "premium",
+      "price": 75000,
+      "status": "available"
+    },
+    {
+      "id": "A2",
+      "row": 0,
+      "col": 1,
+      "position": { "x": 0, "y": 0, "z": -10 },
+      "tier": "premium",
+      "price": 75000,
+      "status": "available"
+    },
+    {
+      "id": "A3",
+      "row": 0,
+      "col": 2,
+      "position": { "x": 0.55, "y": 0, "z": -10 },
+      "tier": "premium",
+      "price": 75000,
+      "status": "available"
+    },
+    {
+      "id": "B1",
+      "row": 1,
+      "col": 0,
+      "position": { "x": -0.55, "y": 0, "z": -9 },
+      "tier": "standard",
+      "price": 45000,
+      "status": "available"
+    },
+    {
+      "id": "B2",
+      "row": 1,
+      "col": 1,
+      "position": { "x": 0, "y": 0, "z": -9 },
+      "tier": "standard",
+      "price": 45000,
+      "status": "available"
+    },
+    {
+      "id": "B3",
+      "row": 1,
+      "col": 2,
+      "position": { "x": 0.55, "y": 0, "z": -9 },
+      "tier": "standard",
+      "price": 45000,
+      "status": "available"
+    }
+  ]
+}

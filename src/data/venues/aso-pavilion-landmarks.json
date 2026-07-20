@@ -1,0 +1,34 @@
+{
+  "landmarks": [
+    { "id": "stage", "name": "Stage", "type": "stage", "position": [0, 0, -18], "labelStyle": "html" },
+
+    { "id": "pillarA", "name": "Pillar A", "type": "pillar", "position": [-4.4, 0, -4], "obstructsView": true, "labelStyle": "html" },
+    { "id": "pillarB", "name": "Pillar B", "type": "pillar", "position": [4.4, 0, -2.5], "obstructsView": true, "labelStyle": "html" },
+    { "id": "speakerLeft", "name": "Speaker Left", "type": "speaker", "position": [-5.7, 0, -14.7], "obstructsView": false, "labelStyle": "html" },
+    { "id": "speakerRight", "name": "Speaker Right", "type": "speaker", "position": [5.7, 0, -14.7], "obstructsView": false, "labelStyle": "html" },
+    { "id": "exitWest", "name": "Exit West", "type": "exit", "position": [-12, 0, 0], "labelStyle": "html" },
+    { "id": "exitEast", "name": "Exit East", "type": "exit", "position": [12, 0, 0], "labelStyle": "html" },
+    { "id": "exitBackstage", "name": "Backstage Exit", "type": "exit", "position": [0, 0, -23], "labelStyle": "html" },
+    { "id": "backstageZone", "name": "Backstage Zone", "type": "backstage", "position": [0, 0, -22], "labelStyle": "html" },
+    { "id": "poleSpeaker1", "name": "Pole Speaker 1", "type": "poleSpeaker", "position": [-4.95, 0, -8], "obstructsView": true, "labelStyle": "html" },
+    { "id": "poleSpeaker2", "name": "Pole Speaker 2", "type": "poleSpeaker", "position": [4.95, 0, -8], "obstructsView": true, "labelStyle": "html" },
+    { "id": "poleSpeaker3", "name": "Pole Speaker 3", "type": "poleSpeaker", "position": [-4.4, 0, 2], "obstructsView": true, "labelStyle": "html" },
+    { "id": "poleSpeaker4", "name": "Pole Speaker 4", "type": "poleSpeaker", "position": [4.4, 0, 2], "obstructsView": true, "labelStyle": "html" },
+    { "id": "poleSpeaker5", "name": "Pole Speaker 5", "type": "poleSpeaker", "position": [0, 0, -1], "obstructsView": true, "labelStyle": "html" },
+    { "id": "headTable", "name": "Head Table", "type": "highTable", "position": [-2.5, 0, -12.5], "labelStyle": "html" },
+    { "id": "vipTable1", "name": "VIP Table 1", "type": "highTable", "position": [2.5, 0, -12.5], "labelStyle": "html" },
+    { "id": "vipTable2", "name": "VIP Table 2", "type": "highTable", "position": [-9.5, 0, -15], "labelStyle": "html" },
+    { "id": "vipTable3", "name": "VIP Table 3", "type": "highTable", "position": [-9.5, 0, -11.5], "labelStyle": "html" },
+    { "id": "vipTable4", "name": "VIP Table 4", "type": "highTable", "position": [9.5, 0, -15], "labelStyle": "html" },
+    { "id": "vipTable5", "name": "VIP Table 5", "type": "highTable", "position": [9.5, 0, -11.5], "labelStyle": "html" },
+    { "id": "entranceMain", "name": "Entrance", "type": "entrance", "position": [0, 0, 20], "labelStyle": "html" },
+    { "id": "servingTable1", "name": "Serving Table 1", "type": "servingTable", "position": [-8, 0, 19.5], "labelStyle": "html" },
+    { "id": "servingTable2", "name": "Serving Table 2", "type": "servingTable", "position": [-4, 0, 19.5], "labelStyle": "html" },
+    { "id": "servingTable3", "name": "Serving Table 3", "type": "servingTable", "position": [4, 0, 19.5], "labelStyle": "html" },
+    { "id": "servingTable4", "name": "Serving Table 4", "type": "servingTable", "position": [8, 0, 19.5], "labelStyle": "html" },
+    { "id": "cateringTable1", "name": "Catering Table 1", "type": "highTable", "position": [-9, 0, 17.5], "labelStyle": "html" },
+    { "id": "cateringTable2", "name": "Catering Table 2", "type": "highTable", "position": [-5, 0, 16.5], "labelStyle": "html" },
+    { "id": "cateringTable5", "name": "Catering Table 5", "type": "highTable", "position": [5, 0, 16.5], "labelStyle": "html" },
+    { "id": "cateringTable6", "name": "Catering Table 6", "type": "highTable", "position": [9, 0, 17.5], "labelStyle": "html" }
+  ]
+}

@@ -1,0 +1,139 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* UI Overlays */
+.panel-left {
+  position: fixed;
+  left: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 280px;
+}
+
+.panel-right {
+  position: fixed;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 280px;
+}
+
+.action-btn-bl {
+  position: fixed;
+  bottom: 40px;
+  left: 40px;
+}
+
+.action-btn-br {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+}
+
+.action-btn-tr {
+  position: fixed;
+  top: 40px;
+  right: 40px;
+}
+
+.modal-container {
+  padding: 40px;
+}
+
+.ticket-container {
+  padding: 32px 24px;
+}
+
+.glass-dark {
+  background-color: rgba(27, 36, 48, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-brass {
+  background-color: rgba(176, 141, 87, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.modal-backdrop {
+  background-color: rgba(27, 36, 48, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.ticket-backdrop {
+  background-color: rgba(27, 36, 48, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@media (max-width: 768px) {
+  .glass-dark {
+    background-color: rgba(27, 36, 48, 0.95) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .glass-brass {
+    background-color: rgb(176, 141, 87) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .modal-backdrop {
+    background-color: rgba(27, 36, 48, 0.85) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .ticket-backdrop {
+    background-color: rgba(27, 36, 48, 0.95) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .panel-left {
+    top: auto !important;
+    bottom: 100px !important;
+    left: 20px !important;
+    right: 20px !important;
+    width: auto !important;
+    transform: none !important;
+  }
+  
+  .panel-right {
+    display: none !important; /* Hide 'Nearby' on mobile to save space */
+  }
+
+  .action-btn-bl {
+    bottom: 20px !important;
+    left: 20px !important;
+  }
+
+  .action-btn-br {
+    bottom: 20px !important;
+    right: 20px !important;
+  }
+
+  .action-btn-tr {
+    top: 20px !important;
+    right: 20px !important;
+  }
+  
+  .modal-container {
+    padding: 24px !important;
+  }
+
+  .ticket-container {
+    padding: 24px 20px !important;
+  }
+}
