@@ -21,11 +21,23 @@ export function CameraStateProvider({ children }) {
   const [fadeOpacity, setFadeOpacity] = useState(0);
   const [occluders, setOccluders] = useState([]);
   const [ticketedSeatId, setTicketedSeatId] = useState(null);
+  const [groupSeatIds, setGroupSeatIds] = useState([]);
+  const [isGroupSelectionActive, setIsGroupSelectionActive] = useState(false);
+  const [groupTargetCount, setGroupTargetCount] = useState(2);
+  const [pendingGroupSeatIds, setPendingGroupSeatIds] = useState([]);
   const [activePreset, setActivePreset] = useState('banquet-default');
   
   const labelTimeoutRef = useRef(null);
   const captureOverviewRef = useRef(null);
   const restoreOverviewRef = useRef(null);
+
+  const resetBookingState = () => {
+    setTicketedSeatId(null);
+    setGroupSeatIds([]);
+    setIsGroupSelectionActive(false);
+    setPendingGroupSeatIds([]);
+    setGroupTargetCount(2);
+  };
 
   const switchPreset = (presetId) => {
     if (presetId === activePreset || status === 'preset-switching') return;
@@ -36,7 +48,7 @@ export function CameraStateProvider({ children }) {
     // Screen fully obscured after 300ms fade to black/navy
     setTimeout(() => {
       setActivePreset(presetId);
-      setTicketedSeatId(null);
+      resetBookingState();
       setTargetSeat(null);
       if (restoreOverviewRef.current) restoreOverviewRef.current();
       setStatus('orbit');
@@ -113,10 +125,32 @@ export function CameraStateProvider({ children }) {
     setOccluders,
     ticketedSeatId,
     setTicketedSeatId,
+    groupSeatIds,
+    setGroupSeatIds,
+    isGroupSelectionActive,
+    setIsGroupSelectionActive,
+    groupTargetCount,
+    setGroupTargetCount,
+    pendingGroupSeatIds,
+    setPendingGroupSeatIds,
+    resetBookingState,
     activePreset,
     setActivePreset,
     switchPreset
-  }), [status, targetSeat, lookAtTarget, fadeOpacity, activeLabel, occluders, ticketedSeatId, activePreset]);
+  }), [
+    status, 
+    targetSeat, 
+    lookAtTarget, 
+    fadeOpacity, 
+    activeLabel, 
+    occluders, 
+    ticketedSeatId, 
+    groupSeatIds, 
+    isGroupSelectionActive, 
+    groupTargetCount, 
+    pendingGroupSeatIds, 
+    activePreset
+  ]);
 
   const hoverValue = React.useMemo(() => ({
     hoveredSeatId

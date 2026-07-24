@@ -45,15 +45,32 @@ const seatEdgesGeometry = new THREE.EdgesGeometry(mergedSeatGeometry);
 const dummy = new THREE.Object3D();
 
 export default React.memo(function SeatingLayout() {
-  const { status, targetSeat, swoopToSeat, showLabel, activeLabel, setHoveredSeatId, ticketedSeatId, activePreset } = useCameraState() || {};
+  const { 
+    status, 
+    targetSeat, 
+    swoopToSeat, 
+    showLabel, 
+    activeLabel, 
+    setHoveredSeatId, 
+    ticketedSeatId, 
+    groupSeatIds = [],
+    isGroupSelectionActive,
+    groupTargetCount = 2,
+    pendingGroupSeatIds = [],
+    setPendingGroupSeatIds,
+    activePreset 
+  } = useCameraState() || {};
+  
   const preset = getPreset(activePreset);
-  const seats = preset?.seats;
+  const seats = preset?.seats || [];
 
   const meshRef = useRef();
   
   const [hoveredId, setHoveredId] = useState(null);
   const hoverTimeoutRef = useRef(null);
   const [isTouchDevice] = useState(() => window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+
+  const isBookingActive = !!(ticketedSeatId || (groupSeatIds && groupSeatIds.length > 0));
 
   // Generate the static edges for all seats once
   const allEdgesGeom = useMemo(() => {
@@ -84,15 +101,24 @@ export default React.memo(function SeatingLayout() {
         dummy.updateMatrix();
         meshRef.current.setMatrixAt(i, dummy.matrix);
         
-        // Set permanent color
+        // Set color
         let hex = "#B08D57"; // Base unhovered desktop color
         
-        if (ticketedSeatId === seat.id) {
-          hex = "#FFD166"; // Ticketed seat is always distinctly yellow globally
-        }
-        
-        if (isTouchDevice && ticketedSeatId !== seat.id) {
-           // On touch devices, reveal statuses and obstructions permanently
+        if (isGroupSelectionActive) {
+          if (pendingGroupSeatIds.includes(seat.id)) {
+            hex = "#4CC9F0"; // Selection cyan glow
+          } else if (seat.status !== 'available') {
+            hex = "#4A5056";
+          }
+        } else if (isBookingActive) {
+          if (ticketedSeatId === seat.id) {
+            hex = "#FFD166"; // Primary ticketed seat (vibrant yellow)
+          } else if (groupSeatIds.includes(seat.id)) {
+            hex = "#E0A96D"; // Secondary group seat (warm brass-gold)
+          } else {
+            hex = "#33383F"; // Dimmed non-booked seats
+          }
+        } else if (isTouchDevice) {
            if (seat.status === 'sold') hex = "#4A5056";
            else if (seat.status === 'held' || seat.status === 'reserved') hex = "#9FA4A9";
            else if (seat.obstructionLevel === 'heavy') hex = "#6E2A34";
@@ -105,14 +131,16 @@ export default React.memo(function SeatingLayout() {
       meshRef.current.instanceMatrix.needsUpdate = true;
       if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
     }
-  }, [seats, ticketedSeatId, isTouchDevice]);
+  }, [seats, ticketedSeatId, groupSeatIds, isGroupSelectionActive, pendingGroupSeatIds, isTouchDevice, isBookingActive]);
 
   const handlePointerMove = (e) => {
     e.stopPropagation();
     if (e.instanceId !== undefined) {
       const seat = seats[e.instanceId];
       if (!seat) return;
-      const isLocked = ticketedSeatId && seat.id !== ticketedSeatId;
+
+      const isBookedSeat = ticketedSeatId === seat.id || groupSeatIds.includes(seat.id);
+      const isLocked = isBookingActive && !isBookedSeat;
       
       if (status === 'orbit') {
         if (hoverTimeoutRef.current) {
@@ -123,7 +151,7 @@ export default React.memo(function SeatingLayout() {
           setHoveredId(seat.id);
           if (setHoveredSeatId) setHoveredSeatId(seat.id);
         }
-        document.body.style.cursor = isLocked ? 'auto' : 'pointer';
+        document.body.style.cursor = (isLocked && !isGroupSelectionActive) ? 'auto' : 'pointer';
       } else if (status === 'pov') {
         if (isLocked) {
           if (hoverTimeoutRef.current) {
@@ -139,7 +167,7 @@ export default React.memo(function SeatingLayout() {
         }
 
         const isNeighbor = checkIsNeighbor(seat, targetSeat);
-        if (isNeighbor) {
+        if (isNeighbor || isBookedSeat) {
           if (hoverTimeoutRef.current) {
             clearTimeout(hoverTimeoutRef.current);
             hoverTimeoutRef.current = null;
@@ -180,7 +208,22 @@ export default React.memo(function SeatingLayout() {
     if (e.instanceId !== undefined) {
       const seat = seats[e.instanceId];
       if (!seat) return;
-      if (ticketedSeatId && seat.id !== ticketedSeatId) return;
+
+      // Group Selection Mode
+      if (isGroupSelectionActive && setPendingGroupSeatIds) {
+        if (seat.status !== 'available') return;
+        if (pendingGroupSeatIds.includes(seat.id)) {
+          // Deselect seat
+          setPendingGroupSeatIds(pendingGroupSeatIds.filter(id => id !== seat.id));
+        } else if (pendingGroupSeatIds.length < groupTargetCount) {
+          // Select seat
+          setPendingGroupSeatIds([...pendingGroupSeatIds, seat.id]);
+        }
+        return;
+      }
+
+      const isBookedSeat = ticketedSeatId === seat.id || groupSeatIds.includes(seat.id);
+      if (isBookingActive && !isBookedSeat) return;
 
       if (status === 'orbit' && swoopToSeat) {
         let target = [0, 1.1, -14];
@@ -189,6 +232,15 @@ export default React.memo(function SeatingLayout() {
         }
         swoopToSeat(seat, target);
       } else if (status === 'pov') {
+        if (isBookedSeat && seat.id !== targetSeat?.id && swoopToSeat) {
+          let target = [0, 1.1, -14];
+          if (seat.section === 'table' && seat.tablePosition) {
+            target = [seat.tablePosition[0], 1.1, seat.tablePosition[2]];
+          }
+          swoopToSeat(seat, target);
+          return;
+        }
+
         const isNeighbor = checkIsNeighbor(seat, targetSeat);
         if (isNeighbor && showLabel) {
           let text = `${seat.id} | ${seat.tier} | ₦${seat.price.toLocaleString('en-NG')}`;

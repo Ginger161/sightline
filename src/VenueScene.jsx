@@ -343,9 +343,30 @@ function PresetSelector() {
 }
 
 function SceneUI({ leftPanelRef, rightPanelRef }) {
-  const { status, fadeOpacity, activeLabel, returnToOverview, targetSeat, ticketedSeatId, setTicketedSeatId, activePreset } = useCameraState() || {};
+  const { 
+    status, 
+    fadeOpacity, 
+    activeLabel, 
+    returnToOverview, 
+    targetSeat, 
+    ticketedSeatId, 
+    setTicketedSeatId, 
+    groupSeatIds = [],
+    setGroupSeatIds,
+    isGroupSelectionActive,
+    setIsGroupSelectionActive,
+    groupTargetCount = 2,
+    setGroupTargetCount,
+    pendingGroupSeatIds = [],
+    setPendingGroupSeatIds,
+    resetBookingState,
+    activePreset 
+  } = useCameraState() || {};
+  
   const { seats } = getPreset(activePreset);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isGroupSizeModalOpen, setIsGroupSizeModalOpen] = useState(false);
+  const [isGroupConfirmModalOpen, setIsGroupConfirmModalOpen] = useState(false);
   const [isTicketScreenOpen, setIsTicketScreenOpen] = useState(false);
   const { hoveredSeatId } = useHoverState() || {};
 
@@ -370,11 +391,128 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
   }
 
   const panelsVisible = !!displaySeat;
+  const isBookingActive = !!(ticketedSeatId || groupSeatIds.length > 0);
+
+  // Group calculations
+  const pendingSeatObjects = pendingGroupSeatIds.map(id => seats.find(s => s.id === id)).filter(Boolean);
+  const groupTotalPrice = pendingSeatObjects.reduce((acc, s) => acc + (s.price || 0), 0);
+
+  const bookedPrimarySeat = seats.find(s => s.id === ticketedSeatId);
+  const bookedGroupSeats = groupSeatIds.map(id => seats.find(s => s.id === id)).filter(Boolean);
+  const totalBookedPrice = (bookedPrimarySeat?.price || 0) + bookedGroupSeats.reduce((acc, s) => acc + (s.price || 0), 0);
 
   return (
     <>
       {/* Preset Selector Control */}
       <PresetSelector />
+
+      {/* Book for a Group Button (Orbit State) */}
+      {status === 'orbit' && !isBookingActive && !isGroupSelectionActive && (
+        <button
+          onClick={() => setIsGroupSizeModalOpen(true)}
+          style={{
+            position: 'fixed',
+            top: '24px',
+            left: '230px',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: 'rgba(27, 36, 48, 0.85)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(176, 141, 87, 0.4)',
+            borderRadius: '12px',
+            padding: '10px 16px',
+            color: '#F4E8C1',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            transition: 'all 0.2s ease',
+            outline: 'none'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.95)';
+            e.currentTarget.style.borderColor = '#B08D57';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.85)';
+            e.currentTarget.style.borderColor = 'rgba(176, 141, 87, 0.4)';
+          }}
+        >
+          <span>👥 Book for a Group</span>
+        </button>
+      )}
+
+      {/* Persistent Group Selection Banner */}
+      {isGroupSelectionActive && (
+        <div style={{
+          position: 'fixed',
+          top: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          backgroundColor: 'rgba(27, 36, 48, 0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(76, 201, 240, 0.5)',
+          borderRadius: '16px',
+          padding: '12px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '20px',
+          boxShadow: '0 12px 36px rgba(0,0,0,0.4)',
+          color: '#ffffff',
+          fontFamily: '"Inter", sans-serif'
+        }}>
+          <div>
+            <div style={{ fontSize: '12px', color: '#4CC9F0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Group Selection Mode
+            </div>
+            <div style={{ fontSize: '15px', fontWeight: '600' }}>
+              {pendingGroupSeatIds.length} of {groupTargetCount} seats selected
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={() => {
+                setIsGroupSelectionActive(false);
+                setPendingGroupSeatIds([]);
+              }}
+              style={{
+                backgroundColor: 'transparent',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: '#A09A8F',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: 600
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              disabled={pendingGroupSeatIds.length !== groupTargetCount}
+              onClick={() => setIsGroupConfirmModalOpen(true)}
+              style={{
+                backgroundColor: pendingGroupSeatIds.length === groupTargetCount ? '#4CC9F0' : 'rgba(76, 201, 240, 0.3)',
+                color: pendingGroupSeatIds.length === groupTargetCount ? '#1B2430' : '#888',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                cursor: pendingGroupSeatIds.length === groupTargetCount ? 'pointer' : 'not-allowed',
+                fontSize: '13px',
+                fontWeight: 700,
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Confirm Group ({pendingGroupSeatIds.length}/{groupTargetCount})
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Fullscreen Fade Overlay */}
       <div 
@@ -535,8 +673,8 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
         </div>
       </div>
 
-      {/* Book This Seat Button */}
-      {status === 'pov' && targetSeat && !ticketedSeatId && targetSeat.status === 'available' && !isBookingModalOpen && !isTicketScreenOpen && (
+      {/* Single Seat Booking Button */}
+      {status === 'pov' && targetSeat && !isBookingActive && targetSeat.status === 'available' && !isBookingModalOpen && !isTicketScreenOpen && (
         <button
           className="action-btn-br glass-dark"
           onClick={() => setIsBookingModalOpen(true)}
@@ -572,7 +710,7 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
       )}
 
       {/* View Ticket Button */}
-      {ticketedSeatId && !isTicketScreenOpen && (
+      {isBookingActive && !isTicketScreenOpen && (
         <button
           className="action-btn-tr glass-brass"
           onClick={() => setIsTicketScreenOpen(true)}
@@ -591,15 +729,155 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
             fontFamily: '"Inter", sans-serif',
             fontSize: '14px',
             fontWeight: 600,
+            position: 'fixed',
+            top: '24px',
+            right: '24px'
           }}
           onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
           onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
         >
-          View Ticket
+          <span>🎟️ View Ticket ({groupSeatIds.length > 0 ? `Group of ${groupSeatIds.length + 1}` : 'Single'})</span>
         </button>
       )}
 
-      {/* Booking Modal */}
+      {/* Group Size Selection Modal */}
+      {isGroupSizeModalOpen && (
+        <div className="modal-backdrop" style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)'
+        }}>
+          <div style={{
+            backgroundColor: '#F7F4EE', borderRadius: '20px', width: '100%', maxWidth: '380px',
+            padding: '28px', boxShadow: '0 24px 48px rgba(0,0,0,0.3)', color: '#1B2430',
+            fontFamily: '"Inter", sans-serif', textAlign: 'center'
+          }}>
+            <h3 style={{ fontFamily: '"Fraunces", serif', color: '#B08D57', margin: '0 0 8px 0', fontSize: '24px' }}>
+              Book for a Group
+            </h3>
+            <p style={{ margin: '0 0 20px 0', color: '#4A5568', fontSize: '14px' }}>
+              How many seats would you like to select together?
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '28px' }}>
+              {[2, 3, 4, 5].map(size => (
+                <button
+                  key={size}
+                  onClick={() => {
+                    setGroupTargetCount(size);
+                    setPendingGroupSeatIds([]);
+                    setIsGroupSelectionActive(true);
+                    setIsGroupSizeModalOpen(false);
+                  }}
+                  style={{
+                    width: '54px', height: '54px', borderRadius: '16px', border: '2px solid #B08D57',
+                    backgroundColor: 'rgba(176, 141, 87, 0.1)', color: '#1B2430', fontSize: '20px',
+                    fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#B08D57';
+                    e.currentTarget.style.color = '#FFFFFF';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(176, 141, 87, 0.1)';
+                    e.currentTarget.style.color = '#1B2430';
+                  }}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setIsGroupSizeModalOpen(false)}
+              style={{
+                width: '100%', padding: '12px', borderRadius: '10px',
+                border: '1px solid rgba(27, 36, 48, 0.2)', backgroundColor: 'transparent',
+                cursor: 'pointer', fontWeight: 600, color: '#4A5568'
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Group Confirmation Modal */}
+      {isGroupConfirmModalOpen && (
+        <div className="modal-backdrop" style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.65)', backdropFilter: 'blur(8px)'
+        }}>
+          <div style={{
+            backgroundColor: '#F7F4EE', borderRadius: '20px', width: '100%', maxWidth: '420px',
+            padding: '28px', boxShadow: '0 24px 48px rgba(0,0,0,0.3)', color: '#1B2430',
+            fontFamily: '"Inter", sans-serif'
+          }}>
+            <h3 style={{ fontFamily: '"Fraunces", serif', color: '#B08D57', margin: '0 0 6px 0', fontSize: '24px', textAlign: 'center' }}>
+              Confirm Group Booking
+            </h3>
+            <p style={{ margin: '0 0 20px 0', color: '#4A5568', fontSize: '13.5px', textAlign: 'center' }}>
+              Review your group seats before finalizing reservation.
+            </p>
+
+            <div style={{ backgroundColor: 'rgba(176, 141, 87, 0.08)', borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
+              {pendingSeatObjects.map((seat, index) => (
+                <div 
+                  key={seat.id} 
+                  style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '8px 0', borderBottom: index < pendingSeatObjects.length - 1 ? '1px dashed rgba(176, 141, 87, 0.3)' : 'none'
+                  }}
+                >
+                  <div>
+                    <span style={{ fontWeight: 700, fontSize: '15px', color: index === 0 ? '#B08D57' : '#1B2430' }}>
+                      {seat.id} {index === 0 && '(Primary)'}
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#718096', marginLeft: '8px' }}>
+                      {seat.tier}
+                    </span>
+                  </div>
+                  <strong style={{ fontSize: '14px' }}>₦{seat.price.toLocaleString('en-NG')}</strong>
+                </div>
+              ))}
+
+              <div style={{ borderTop: '2px solid #B08D57', marginTop: '12px', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 700, fontSize: '15px', color: '#1B2430' }}>Total Price</span>
+                <span style={{ fontFamily: '"Fraunces", serif', fontSize: '22px', fontWeight: 700, color: '#B08D57' }}>
+                  ₦{groupTotalPrice.toLocaleString('en-NG')}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setIsGroupConfirmModalOpen(false)}
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid rgba(27, 36, 48, 0.2)', backgroundColor: 'transparent', cursor: 'pointer', fontWeight: 600, color: '#4A5568' }}
+              >
+                Back to Selection
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingGroupSeatIds.length > 0) {
+                    setTicketedSeatId(pendingGroupSeatIds[0]);
+                    setGroupSeatIds(pendingGroupSeatIds.slice(1));
+                    setIsGroupSelectionActive(false);
+                    setPendingGroupSeatIds([]);
+                    setIsGroupConfirmModalOpen(false);
+                    setIsTicketScreenOpen(true);
+                  }
+                }}
+                style={{ flex: 1.2, padding: '12px', borderRadius: '10px', border: 'none', backgroundColor: '#1B2430', color: '#F7F4EE', cursor: 'pointer', fontWeight: 700, fontSize: '14px' }}
+              >
+                Confirm Group Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Single Seat Booking Confirmation Modal */}
       {isBookingModalOpen && targetSeat && (
         <div className="modal-backdrop" style={{
           position: 'fixed',
@@ -649,6 +927,7 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
               <button 
                 onClick={() => {
                   setTicketedSeatId(targetSeat.id);
+                  setGroupSeatIds([]);
                   setIsBookingModalOpen(false);
                   setIsTicketScreenOpen(true);
                 }}
@@ -677,7 +956,7 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
             backgroundColor: '#F7F4EE',
             borderRadius: '24px',
             width: '100%',
-            maxWidth: '360px',
+            maxWidth: '380px',
             overflow: 'hidden',
             boxShadow: '0 32px 64px rgba(0,0,0,0.3)',
             color: '#1B2430',
@@ -693,7 +972,7 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
               </h3>
             </div>
             
-            <div className="ticket-container">
+            <div className="ticket-container" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <div>
                   <div style={{ fontSize: '12px', color: '#A09A8F', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Date</div>
@@ -711,9 +990,19 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
               </div>
 
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <div style={{ fontSize: '14px', color: '#A09A8F', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Your Seat</div>
-                <div style={{ fontFamily: '"Fraunces", serif', fontSize: '48px', fontWeight: 700, color: '#B08D57', lineHeight: 1 }}>
+                <div style={{ fontSize: '13px', color: '#A09A8F', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                  {groupSeatIds.length > 0 ? `Group Booking (${groupSeatIds.length + 1} Seats)` : 'Your Primary Seat'}
+                </div>
+                <div style={{ fontFamily: '"Fraunces", serif', fontSize: groupSeatIds.length > 0 ? '36px' : '48px', fontWeight: 700, color: '#B08D57', lineHeight: 1 }}>
                   {ticketedSeatId}
+                </div>
+                {groupSeatIds.length > 0 && (
+                  <div style={{ fontSize: '13px', color: '#4A5568', marginTop: '8px', fontWeight: 600 }}>
+                    Group Seats: {groupSeatIds.join(', ')}
+                  </div>
+                )}
+                <div style={{ fontSize: '15px', color: '#B08D57', fontWeight: 700, marginTop: '10px' }}>
+                  Total: ₦{totalBookedPrice.toLocaleString('en-NG')}
                 </div>
               </div>
 
@@ -729,7 +1018,11 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
           {/* Reset Demo Option */}
           <button 
             onClick={() => {
-              setTicketedSeatId(null);
+              if (resetBookingState) resetBookingState();
+              else {
+                setTicketedSeatId(null);
+                setGroupSeatIds([]);
+              }
               setIsTicketScreenOpen(false);
             }}
             style={{ 
@@ -743,7 +1036,7 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
               textDecoration: 'underline'
             }}
           >
-            Reset Demo (Clear Ticket)
+            Reset Demo (Clear Booking)
           </button>
         </div>
       )}
