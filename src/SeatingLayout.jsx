@@ -1,10 +1,30 @@
 import React, { useMemo, useRef, useState, useLayoutEffect } from 'react';
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
-import { useCameraState } from './CameraState';
+import { useCameraState, useHoverState } from './CameraState';
 import Seat from './Seat';
 import FloatingLabel from './FloatingLabel';
 import { getPreset } from './presets';
+
+export function checkIsNeighbor(seat, targetSeat) {
+  if (!seat || !targetSeat || seat.id === targetSeat.id) return false;
+
+  if (seat.tableId && targetSeat.tableId) {
+    return seat.tableId === targetSeat.tableId;
+  }
+
+  if (!seat.tableId && !targetSeat.tableId) {
+    const targetCol = targetSeat.relativeCol !== undefined ? targetSeat.relativeCol : targetSeat.col;
+    const seatCol = seat.relativeCol !== undefined ? seat.relativeCol : seat.col;
+
+    return seat.section === targetSeat.section &&
+      targetCol !== undefined && seatCol !== undefined &&
+      Math.abs(seat.row - targetSeat.row) <= 1 &&
+      Math.abs(seatCol - targetCol) <= 1;
+  }
+
+  return false;
+}
 
 // Pre-compute geometries
 const bottomGeom = new THREE.BoxGeometry(0.5, 0.45, 0.5);
