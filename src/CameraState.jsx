@@ -21,10 +21,32 @@ export function CameraStateProvider({ children }) {
   const [fadeOpacity, setFadeOpacity] = useState(0);
   const [occluders, setOccluders] = useState([]);
   const [ticketedSeatId, setTicketedSeatId] = useState(null);
+  const [activePreset, setActivePreset] = useState('banquet-default');
   
   const labelTimeoutRef = useRef(null);
   const captureOverviewRef = useRef(null);
   const restoreOverviewRef = useRef(null);
+
+  const switchPreset = (presetId) => {
+    if (presetId === activePreset || status === 'preset-switching') return;
+    setActiveLabel(null);
+    setStatus('preset-switching');
+    setFadeOpacity(1);
+
+    // Screen fully obscured after 300ms fade to black/navy
+    setTimeout(() => {
+      setActivePreset(presetId);
+      setTicketedSeatId(null);
+      setTargetSeat(null);
+      if (restoreOverviewRef.current) restoreOverviewRef.current();
+      setStatus('orbit');
+
+      // Fade back in smoothly
+      setTimeout(() => {
+        setFadeOpacity(0);
+      }, 50);
+    }, 300);
+  };
 
   const swoopToSeat = (seat, stageTarget) => {
     if (status === 'orbit') {
@@ -76,6 +98,7 @@ export function CameraStateProvider({ children }) {
     status, 
     setStatus, 
     targetSeat, 
+    setTargetSeat,
     lookAtTarget, 
     swoopToSeat, 
     returnToOverview,
@@ -89,8 +112,11 @@ export function CameraStateProvider({ children }) {
     occluders,
     setOccluders,
     ticketedSeatId,
-    setTicketedSeatId
-  }), [status, targetSeat, lookAtTarget, fadeOpacity, activeLabel, occluders, ticketedSeatId]);
+    setTicketedSeatId,
+    activePreset,
+    setActivePreset,
+    switchPreset
+  }), [status, targetSeat, lookAtTarget, fadeOpacity, activeLabel, occluders, ticketedSeatId, activePreset]);
 
   const hoverValue = React.useMemo(() => ({
     hoveredSeatId

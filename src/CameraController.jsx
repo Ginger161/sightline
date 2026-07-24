@@ -9,14 +9,13 @@ export default function CameraController({ children }) {
   const { status, setStatus, targetSeat, lookAtTarget, captureOverviewRef, restoreOverviewRef } = useCameraState();
   
   const orbitControlsRef = useRef(null);
-  const savedOrbitTarget = useRef([0, 3, 0]);
+  const savedOrbitTarget = useRef([0, 1.0, -2.0]);
   const savedOrbitState = useRef({
-    pos: new THREE.Vector3(),
+    pos: new THREE.Vector3(0, 24.0, 32.0),
     quat: new THREE.Quaternion()
   });
 
   const { camera } = useThree();
-  const effectRunCount = useRef(0);
 
   // Derive the target seat position array if it exists
   const targetSeatPos = React.useMemo(() => {
@@ -25,7 +24,7 @@ export default function CameraController({ children }) {
       : null;
   }, [targetSeat?.id]);
 
-  // The custom hook that drives the camera animation
+  // Seat Swoop Hook
   useCameraSwoop(
     status, 
     targetSeatPos, 
@@ -37,32 +36,33 @@ export default function CameraController({ children }) {
     }
   );
 
-
   // Register the synchronous capture/restore functions
   useEffect(() => {
-    effectRunCount.current += 1;
-    console.log(`[EFFECT RUN] Count: ${effectRunCount.current}, Time: ${performance.now().toFixed(2)}ms`);
-
     captureOverviewRef.current = () => {
       savedOrbitState.current.pos.copy(camera.position);
       savedOrbitState.current.quat.copy(camera.quaternion);
-      console.log(`[CAPTURE] Captured pos:`, savedOrbitState.current.pos.toArray(), `quat:`, savedOrbitState.current.quat.toArray());
       if (orbitControlsRef.current) {
         savedOrbitTarget.current = orbitControlsRef.current.target.toArray();
       }
     };
     
     restoreOverviewRef.current = () => {
-      camera.position.copy(savedOrbitState.current.pos);
-      camera.quaternion.copy(savedOrbitState.current.quat);
-      console.log(`[RESTORE] Restored pos:`, savedOrbitState.current.pos.toArray(), `quat:`, savedOrbitState.current.quat.toArray());
+      const defaultPos = new THREE.Vector3(0, 24.0, 32.0);
+      const defaultTarget = [0, 1.0, -2.0];
+      const dummyCam = new THREE.PerspectiveCamera();
+      dummyCam.position.copy(defaultPos);
+      dummyCam.lookAt(defaultTarget[0], defaultTarget[1], defaultTarget[2]);
+
+      camera.position.copy(defaultPos);
+      camera.quaternion.copy(dummyCam.quaternion);
       
-      console.log(`[RESTORE FLOW] orbitControlsRef.current is:`, orbitControlsRef.current ? "PRESENT" : "NULL");
+      savedOrbitState.current.pos.copy(defaultPos);
+      savedOrbitState.current.quat.copy(dummyCam.quaternion);
+      savedOrbitTarget.current = defaultTarget;
+
       if (orbitControlsRef.current) {
-        console.log(`[RESTORE FLOW] Target BEFORE:`, orbitControlsRef.current.target.toArray());
-        orbitControlsRef.current.target.fromArray(savedOrbitTarget.current);
+        orbitControlsRef.current.target.fromArray(defaultTarget);
         orbitControlsRef.current.update();
-        console.log(`[RESTORE FLOW] Target AFTER:`, orbitControlsRef.current.target.toArray());
       }
     };
   }, [camera, captureOverviewRef, restoreOverviewRef]);

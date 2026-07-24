@@ -394,6 +394,17 @@ export default function LandingPage() {
           <p style={{ fontSize: '14px', margin: 0 }}>
             © {new Date().getFullYear()} Sightline Venue Experiences. All rights reserved.
           </p>
+          <p style={{ fontSize: '13px', margin: 0, color: '#8A95A5' }}>
+            Designed and built by Ceejay Ginger — Helioconvrt.{' '}
+            <a 
+              href="https://helioconvrt.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ color: '#B08D57', textDecoration: 'underline' }}
+            >
+              helioconvrt.com
+            </a>
+          </p>
         </div>
       </footer>
     </div>

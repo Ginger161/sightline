@@ -2,7 +2,9 @@ import React, { useState, useRef } from 'react';
 import { Edges } from '@react-three/drei';
 import { useCameraState } from './CameraState';
 import FloatingLabel from './FloatingLabel';
-import landmarkData from './data/venues/aso-pavilion-landmarks.json';
+import { getPreset } from './presets';
+import BalconyStructure from './BalconyStructure';
+import ConferenceBalconyStructure from './ConferenceBalconyStructure';
 
 function Landmark({ data }) {
   const { id, name, type, position } = data;
@@ -51,10 +53,20 @@ function Landmark({ data }) {
       yOffset = 0.5;
       labelOffset = [0, 1.0, 0];
       break;
+    case 'sweetheartPlatform':
+      geometry = <cylinderGeometry args={[2.8, 3.0, 0.6, 32]} />;
+      yOffset = 0.3;
+      labelOffset = [0, 0.8, 0];
+      break;
     case 'highTable':
       geometry = <cylinderGeometry args={[0.6, 0.6, 0.8, 16]} />;
       yOffset = 0.4;
       labelOffset = [0, 0.8, 0];
+      break;
+    case 'carpet':
+      geometry = <planeGeometry args={[2.4, 35]} />;
+      yOffset = 0.005;
+      labelOffset = [0, 0.2, 0];
       break;
     case 'servingTable':
       geometry = <boxGeometry args={[2.5, 0.9, 0.8]} />;
@@ -68,10 +80,11 @@ function Landmark({ data }) {
   }
 
   const worldPosition = [position[0], position[1] + yOffset, position[2]];
+  const meshRotation = type === 'carpet' ? [-Math.PI / 2, 0, 0] : [0, 0, 0];
 
-  const defaultColor = type === 'exit' ? '#6E2A34' : type === 'entrance' ? '#B08D57' : type === 'stage' ? '#1B2430' : '#C9C4B8';
-  const hoverColor = type === 'exit' ? '#8B3542' : type === 'entrance' ? '#d1a86b' : type === 'stage' ? '#2b394d' : '#DEDBD5';
-  const edgeColor = type === 'stage' ? '#4B5F7A' : '#A09A8F';
+  const defaultColor = (type === 'exit' || type === 'carpet') ? '#6E2A34' : type === 'entrance' ? '#B08D57' : (type === 'stage' || type === 'sweetheartPlatform') ? '#1B2430' : '#C9C4B8';
+  const hoverColor = (type === 'exit' || type === 'carpet') ? '#8B3542' : type === 'entrance' ? '#d1a86b' : (type === 'stage' || type === 'sweetheartPlatform') ? '#2b394d' : '#DEDBD5';
+  const edgeColor = type === 'carpet' ? '#4B1C22' : (type === 'stage' || type === 'sweetheartPlatform') ? '#4B5F7A' : '#A09A8F';
 
   return (
     <group 
@@ -79,7 +92,7 @@ function Landmark({ data }) {
       position={worldPosition}
       onClick={(e) => {
         e.stopPropagation();
-        if (showLabel) showLabel(id, name);
+        if (showLabel) showLabel(id, data.description || name);
       }}
       onPointerOver={(e) => {
         e.stopPropagation();
@@ -106,7 +119,7 @@ function Landmark({ data }) {
           </mesh>
         </>
       ) : (
-        <mesh>
+        <mesh rotation={meshRotation}>
           {geometry}
           <meshStandardMaterial 
             color={hovered ? hoverColor : defaultColor} 
@@ -119,14 +132,20 @@ function Landmark({ data }) {
       )}
 
       {isActive && (
-        <FloatingLabel text={name} position={labelOffset} />
+        <FloatingLabel 
+          title={name} 
+          text={activeLabel?.text || data.description || name} 
+          position={labelOffset} 
+        />
       )}
     </group>
   );
 }
 
 export default React.memo(function RoomShell() {
-  const { setOccluders } = useCameraState() || {};
+  const { setOccluders, activePreset } = useCameraState() || {};
+  const preset = getPreset(activePreset);
+  const landmarks = preset.landmarks || [];
   
   const floorRef = useRef();
   const northWallRef = useRef();
@@ -162,46 +181,43 @@ export default React.memo(function RoomShell() {
 
       {/* North Wall (Back) */}
       <mesh 
-        ref={northWallRef} position={[0, 3, -20.25]}
+        ref={northWallRef} position={[0, 4.5, -20.25]}
         onPointerOver={stopPropagation} onPointerMove={stopPropagation} onPointerOut={stopPropagation} onClick={stopPropagation}
       >
-        <boxGeometry args={[24.5, 6, 0.5]} />
+        <boxGeometry args={[24.5, 9, 0.5]} />
         <meshStandardMaterial color="#C9C4B8" roughness={1} />
         <Edges color="#A09A8F" />
       </mesh>
 
       {/* South Wall (Front) */}
       <mesh 
-        ref={southWallRef} position={[0, 3, 20.25]}
+        ref={southWallRef} position={[0, 4.5, 20.25]}
         onPointerOver={stopPropagation} onPointerMove={stopPropagation} onPointerOut={stopPropagation} onClick={stopPropagation}
       >
-        <boxGeometry args={[24.5, 6, 0.5]} />
+        <boxGeometry args={[24.5, 9, 0.5]} />
         <meshStandardMaterial color="#C9C4B8" roughness={1} />
         <Edges color="#A09A8F" />
       </mesh>
 
       {/* West Wall (Left) */}
       <mesh 
-        ref={westWallRef} position={[-12.25, 3, 0]}
+        ref={westWallRef} position={[-12.25, 4.5, 0]}
         onPointerOver={stopPropagation} onPointerMove={stopPropagation} onPointerOut={stopPropagation} onClick={stopPropagation}
       >
-        <boxGeometry args={[0.5, 6, 41]} />
+        <boxGeometry args={[0.5, 9, 41]} />
         <meshStandardMaterial color="#C9C4B8" roughness={1} />
         <Edges color="#A09A8F" />
       </mesh>
 
       {/* East Wall (Right) */}
       <mesh 
-        ref={eastWallRef} position={[12.25, 3, 0]}
+        ref={eastWallRef} position={[12.25, 4.5, 0]}
         onPointerOver={stopPropagation} onPointerMove={stopPropagation} onPointerOut={stopPropagation} onClick={stopPropagation}
       >
-        <boxGeometry args={[0.5, 6, 41]} />
+        <boxGeometry args={[0.5, 9, 41]} />
         <meshStandardMaterial color="#C9C4B8" roughness={1} />
         <Edges color="#A09A8F" />
       </mesh>
-
-
-
 
 
       {/* --- GROUND PLANE --- */}
@@ -210,8 +226,12 @@ export default React.memo(function RoomShell() {
         <meshStandardMaterial color="#8C8A84" roughness={1} />
       </mesh>
 
+      {/* Balcony Structure */}
+      {activePreset === 'mega-church' && <BalconyStructure />}
+      {activePreset === 'conference-theatre' && <ConferenceBalconyStructure />}
+
       {/* Dynamic Landmarks */}
-      {landmarkData.landmarks.map((landmark) => (
+      {landmarks.map((landmark) => (
         <Landmark key={landmark.id} data={landmark} />
       ))}
     </group>

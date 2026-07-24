@@ -80,18 +80,19 @@ function SceneContent() {
   );
 }
 
-import { SEATS_DATA } from './SeatingLayout';
+import { getPreset } from './presets';
 
 function PanelDodger({ leftPanelRef, rightPanelRef }) {
   const { camera, size } = useThree();
-  const { status, activeLabel, targetSeat } = useCameraState() || {};
+  const { status, activeLabel, targetSeat, activePreset } = useCameraState() || {};
   const { hoveredSeatId } = useHoverState() || {};
+  const { seats } = getPreset(activePreset);
 
   let displaySeat = null;
   if (hoveredSeatId) {
-    displaySeat = SEATS_DATA.find(s => s.id === hoveredSeatId);
+    displaySeat = seats.find(s => s.id === hoveredSeatId);
   } else if (activeLabel && activeLabel.id) {
-    displaySeat = SEATS_DATA.find(s => s.id === activeLabel.id);
+    displaySeat = seats.find(s => s.id === activeLabel.id);
   } else if (status === 'pov' && targetSeat) {
     displaySeat = targetSeat;
   }
@@ -202,8 +203,148 @@ function PanelDodger({ leftPanelRef, rightPanelRef }) {
   return null;
 }
 
+function PresetSelector() {
+  const { status, activePreset, switchPreset } = useCameraState() || {};
+  const [isOpen, setIsOpen] = React.useState(false);
+  const dropdownRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  if (status !== 'orbit' && status !== 'pov' && status !== 'preset-switching') return null;
+
+  const presetsList = [
+    { id: 'banquet-default', label: 'Awards Ceremony' },
+    { id: 'mega-church', label: 'Mega-Church' },
+    { id: 'wedding', label: 'Wedding/Ceremony' },
+    { id: 'conference-theatre', label: 'Conference/Theatre' }
+  ];
+
+  const currentPresetObj = presetsList.find(p => p.id === activePreset) || presetsList[0];
+
+  const handleSelect = (presetId) => {
+    setIsOpen(false);
+    if (presetId === activePreset) return;
+    if (switchPreset) switchPreset(presetId);
+  };
+
+  return (
+    <div 
+      ref={dropdownRef}
+      style={{
+        position: 'fixed',
+        top: '24px',
+        left: '24px',
+        zIndex: 1000,
+        pointerEvents: 'auto'
+      }}
+    >
+      {/* Collapsed Dropdown Toggle Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          backgroundColor: 'rgba(27, 36, 48, 0.85)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(176, 141, 87, 0.4)',
+          borderRadius: '12px',
+          padding: '10px 16px',
+          color: '#F4E8C1',
+          fontSize: '13px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+          transition: 'all 0.2s ease',
+          outline: 'none'
+        }}
+      >
+        <span>{currentPresetObj.label}</span>
+        <span style={{ fontSize: '10px', color: '#C19D67', transition: 'transform 0.2s ease', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+          ▼
+        </span>
+      </button>
+
+      {/* Expanded Dropdown Menu Panel */}
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: 0,
+            minWidth: '210px',
+            backgroundColor: 'rgba(27, 36, 48, 0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(176, 141, 87, 0.35)',
+            borderRadius: '12px',
+            padding: '6px',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px'
+          }}
+        >
+          {presetsList.map(p => {
+            const isActive = p.id === activePreset;
+            return (
+              <button
+                key={p.id}
+                onClick={() => handleSelect(p.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justify: 'space-between',
+                  width: '100%',
+                  textAlign: 'left',
+                  backgroundColor: isActive ? 'rgba(176, 141, 87, 0.2)' : 'transparent',
+                  color: isActive ? '#F4E8C1' : '#A09A8F',
+                  border: 'none',
+                  borderLeft: isActive ? '3px solid #C19D67' : '3px solid transparent',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  fontSize: '13px',
+                  fontWeight: isActive ? '600' : '400',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  outline: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.color = '#E2D9C5';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#A09A8F';
+                  }
+                }}
+              >
+                <span>{p.label}</span>
+                {isActive && <span style={{ fontSize: '11px', color: '#C19D67' }}>✓</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SceneUI({ leftPanelRef, rightPanelRef }) {
-  const { status, fadeOpacity, activeLabel, returnToOverview, targetSeat, ticketedSeatId, setTicketedSeatId } = useCameraState() || {};
+  const { status, fadeOpacity, activeLabel, returnToOverview, targetSeat, ticketedSeatId, setTicketedSeatId, activePreset } = useCameraState() || {};
+  const { seats } = getPreset(activePreset);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isTicketScreenOpen, setIsTicketScreenOpen] = useState(false);
   const { hoveredSeatId } = useHoverState() || {};
@@ -215,9 +356,9 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
   // Resolve display seat
   let displaySeat = null;
   if (hoveredSeatId) {
-    displaySeat = SEATS_DATA.find(s => s.id === hoveredSeatId);
+    displaySeat = seats.find(s => s.id === hoveredSeatId);
   } else if (activeLabel && activeLabel.id) {
-    displaySeat = SEATS_DATA.find(s => s.id === activeLabel.id);
+    displaySeat = seats.find(s => s.id === activeLabel.id);
   } else if (status === 'pov' && targetSeat) {
     displaySeat = targetSeat;
   }
@@ -226,9 +367,9 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
   let nearbySeats = [];
   if (displaySeat) {
     if (displaySeat.section === 'table') {
-      nearbySeats = SEATS_DATA.filter(s => s.tableId === displaySeat.tableId && s.id !== displaySeat.id);
+      nearbySeats = seats.filter(s => s.tableId === displaySeat.tableId && s.id !== displaySeat.id);
     } else {
-      nearbySeats = SEATS_DATA.filter(s => 
+      nearbySeats = seats.filter(s => 
         s.section === displaySeat.section && 
         Math.abs(s.row - displaySeat.row) <= 1 && 
         Math.abs(s.relativeCol - displaySeat.relativeCol) <= 1 && 
@@ -241,6 +382,9 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
 
   return (
     <>
+      {/* Preset Selector Control */}
+      <PresetSelector />
+
       {/* Fullscreen Fade Overlay */}
       <div 
         style={{

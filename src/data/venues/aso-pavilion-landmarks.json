@@ -29,6 +29,7 @@
     { "id": "cateringTable1", "name": "Catering Table 1", "type": "highTable", "position": [-9, 0, 17.5], "labelStyle": "html" },
     { "id": "cateringTable2", "name": "Catering Table 2", "type": "highTable", "position": [-5, 0, 16.5], "labelStyle": "html" },
     { "id": "cateringTable5", "name": "Catering Table 5", "type": "highTable", "position": [5, 0, 16.5], "labelStyle": "html" },
-    { "id": "cateringTable6", "name": "Catering Table 6", "type": "highTable", "position": [9, 0, 17.5], "labelStyle": "html" }
+    { "id": "cateringTable6", "name": "Catering Table 6", "type": "highTable", "position": [9, 0, 17.5], "labelStyle": "html" },
+    { "id": "aNoteLandmark", "name": "A Note", "type": "landmark", "position": [1.8, 0, 19.7], "description": "Built by Ceejay Ginger (Helioconvrt). This is a portfolio piece — every seat, every wall, every bug fix in here is mine. If you're seeing this, you're exploring the real thing.", "labelStyle": "html" }
   ]
 }
