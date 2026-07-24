@@ -118,16 +118,7 @@ export default React.memo(function SeatingLayout() {
           return;
         }
 
-        let isNeighbor = false;
-        if (seat.tableId && targetSeat.tableId) {
-          isNeighbor = seat.tableId === targetSeat.tableId && seat.id !== targetSeat.id;
-        } else if (!seat.tableId && !targetSeat.tableId) {
-          isNeighbor = targetSeat && 
-            seat.section === targetSeat.section && 
-            Math.abs(seat.row - targetSeat.row) <= 1 && 
-            Math.abs(seat.relativeCol - targetSeat.relativeCol) <= 1 && 
-            seat.id !== targetSeat.id;
-        }
+        const isNeighbor = checkIsNeighbor(seat, targetSeat);
         if (isNeighbor) {
           if (hoverTimeoutRef.current) {
             clearTimeout(hoverTimeoutRef.current);
@@ -178,16 +169,7 @@ export default React.memo(function SeatingLayout() {
         }
         swoopToSeat(seat, target);
       } else if (status === 'pov') {
-        let isNeighbor = false;
-        if (seat.tableId && targetSeat.tableId) {
-          isNeighbor = seat.tableId === targetSeat.tableId && seat.id !== targetSeat.id;
-        } else if (!seat.tableId && !targetSeat.tableId) {
-          isNeighbor = targetSeat && 
-            seat.section === targetSeat.section && 
-            Math.abs(seat.row - targetSeat.row) <= 1 && 
-            Math.abs(seat.relativeCol - targetSeat.relativeCol) <= 1 && 
-            seat.id !== targetSeat.id;
-        }
+        const isNeighbor = checkIsNeighbor(seat, targetSeat);
         if (isNeighbor && showLabel) {
           let text = `${seat.id} | ${seat.tier} | ₦${seat.price.toLocaleString('en-NG')}`;
           if (seat.status === 'sold') text += `\nSold`;
