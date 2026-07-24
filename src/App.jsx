@@ -14,7 +14,7 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  if (currentHash === '#experience') {
+  if (currentHash === '#experience' || currentHash.startsWith('#preview/')) {
     return <VenueScene />;
   }
 

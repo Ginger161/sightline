@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useRef } from 'react';
+import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
+import { getPreset } from './presets';
 
 export const CameraStateContext = createContext();
 
@@ -26,10 +27,60 @@ export function CameraStateProvider({ children }) {
   const [groupTargetCount, setGroupTargetCount] = useState(2);
   const [pendingGroupSeatIds, setPendingGroupSeatIds] = useState([]);
   const [activePreset, setActivePreset] = useState('banquet-default');
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [previewError, setPreviewError] = useState(null);
   
   const labelTimeoutRef = useRef(null);
   const captureOverviewRef = useRef(null);
   const restoreOverviewRef = useRef(null);
+
+  // Handle Hash Route Initialization (#preview/{presetId}/{seatId})
+  useEffect(() => {
+    const handleHashRoute = () => {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#preview/')) {
+        const parts = hash.split('/');
+        const presetId = parts[1];
+        const seatId = parts[2];
+
+        const knownPresets = ['banquet-default', 'mega-church', 'wedding', 'conference-theatre'];
+        if (!knownPresets.includes(presetId)) {
+          setIsPreviewMode(true);
+          setPreviewError(`Venue preset "${presetId}" was not found.`);
+          return;
+        }
+
+        const preset = getPreset(presetId);
+
+        const seat = preset.seats?.find(s => s.id === seatId);
+        if (!seat) {
+          setIsPreviewMode(true);
+          setActivePreset(presetId);
+          setPreviewError(`Seat "${seatId}" was not found in preset "${preset.title || presetId}".`);
+          return;
+        }
+
+        // Valid read-only preview target
+        setIsPreviewMode(true);
+        setPreviewError(null);
+        setActivePreset(presetId);
+        setTargetSeat(seat);
+        let stageTarget = [0, 1.1, -14];
+        if (seat.section === 'table' && seat.tablePosition) {
+          stageTarget = [seat.tablePosition[0], 1.1, seat.tablePosition[2]];
+        }
+        setLookAtTarget(stageTarget);
+        setStatus('pov'); // Jump directly to eye-level POV!
+      } else {
+        setIsPreviewMode(false);
+        setPreviewError(null);
+      }
+    };
+
+    handleHashRoute();
+    window.addEventListener('hashchange', handleHashRoute);
+    return () => window.removeEventListener('hashchange', handleHashRoute);
+  }, []);
 
   const resetBookingState = () => {
     setTicketedSeatId(null);
@@ -136,7 +187,9 @@ export function CameraStateProvider({ children }) {
     resetBookingState,
     activePreset,
     setActivePreset,
-    switchPreset
+    switchPreset,
+    isPreviewMode,
+    previewError
   }), [
     status, 
     targetSeat, 
@@ -149,7 +202,9 @@ export function CameraStateProvider({ children }) {
     isGroupSelectionActive, 
     groupTargetCount, 
     pendingGroupSeatIds, 
-    activePreset
+    activePreset,
+    isPreviewMode,
+    previewError
   ]);
 
   const hoverValue = React.useMemo(() => ({

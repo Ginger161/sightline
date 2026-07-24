@@ -204,7 +204,7 @@ function PanelDodger({ leftPanelRef, rightPanelRef }) {
 }
 
 function PresetSelector() {
-  const { status, activePreset, switchPreset } = useCameraState() || {};
+  const { status, activePreset, switchPreset, isPreviewMode } = useCameraState() || {};
   const [isOpen, setIsOpen] = React.useState(false);
   const dropdownRef = React.useRef(null);
 
@@ -218,7 +218,7 @@ function PresetSelector() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (status !== 'orbit' && status !== 'pov' && status !== 'preset-switching') return null;
+  if (isPreviewMode || (status !== 'orbit' && status !== 'pov' && status !== 'preset-switching')) return null;
 
   const presetsList = [
     { id: 'banquet-default', label: 'Awards Ceremony' },
@@ -361,7 +361,9 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
     pendingGroupSeatIds = [],
     setPendingGroupSeatIds,
     resetBookingState,
-    activePreset 
+    activePreset,
+    isPreviewMode,
+    previewError 
   } = useCameraState() || {};
   
   const { seats } = getPreset(activePreset);
@@ -369,11 +371,127 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
   const [isGroupSizeModalOpen, setIsGroupSizeModalOpen] = useState(false);
   const [isGroupConfirmModalOpen, setIsGroupConfirmModalOpen] = useState(false);
   const [isTicketScreenOpen, setIsTicketScreenOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
   const { hoveredSeatId } = useHoverState() || {};
 
   React.useEffect(() => {
     window.testClickBack = returnToOverview;
   }, [returnToOverview]);
+
+  // Handle Share This Seat Click
+  const handleShareSeat = () => {
+    if (!targetSeat) return;
+    const shareUrl = `${window.location.origin}${window.location.pathname}#preview/${activePreset}/${targetSeat.id}`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setToastMessage('🔗 Link copied to clipboard!');
+        setTimeout(() => setToastMessage(null), 2500);
+      }).catch(() => {
+        setToastMessage(`Link created: ${shareUrl}`);
+        setTimeout(() => setToastMessage(null), 4000);
+      });
+    } else {
+      setToastMessage(`Link created: ${shareUrl}`);
+      setTimeout(() => setToastMessage(null), 4000);
+    }
+  };
+
+  // Preview Error State
+  if (isPreviewMode && previewError) {
+    return (
+      <div className="modal-backdrop" style={{
+        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+        zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: 'rgba(27, 36, 48, 0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)'
+      }}>
+        <div style={{
+          backgroundColor: '#F7F4EE', borderRadius: '20px', width: '100%', maxWidth: '400px',
+          padding: '32px 28px', boxShadow: '0 24px 48px rgba(0,0,0,0.3)', color: '#1B2430',
+          fontFamily: '"Inter", sans-serif', textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚠️</div>
+          <h3 style={{ fontFamily: '"Fraunces", serif', color: '#B08D57', margin: '0 0 10px 0', fontSize: '22px' }}>
+            Seat Preview Unavailable
+          </h3>
+          <p style={{ margin: '0 0 24px 0', color: '#4A5568', fontSize: '14px', lineHeight: '1.5' }}>
+            {previewError}
+          </p>
+          <a
+            href="#experience"
+            style={{
+              display: 'inline-block', width: '100%', padding: '12px', borderRadius: '10px',
+              border: 'none', backgroundColor: '#1B2430', color: '#F7F4EE', textDecoration: 'none',
+              fontWeight: 600, fontSize: '14px', boxSizing: 'border-box'
+            }}
+          >
+            Explore Sightline Venue ➔
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // Read-Only Preview Mode UI
+  if (isPreviewMode) {
+    return (
+      <>
+        {/* Obstruction Warning Pill in Read-Only POV */}
+        {targetSeat && targetSeat.obstructionLevel && targetSeat.obstructionLevel !== 'clear' && (
+          <div style={{
+            position: 'fixed', top: '40px', left: '50%', transform: 'translateX(-50%)',
+            backgroundColor: targetSeat.obstructionLevel === 'heavy' ? 'rgba(110, 42, 52, 0.85)' : 'rgba(151, 99, 77, 0.85)',
+            color: 'white', padding: '8px 16px', borderRadius: '20px', fontSize: '14px',
+            fontWeight: 'bold', backdropFilter: 'blur(4px)',
+            border: `1px solid ${targetSeat.obstructionLevel === 'heavy' ? '#ff4d4d' : '#ffb366'}`,
+            zIndex: 1000, pointerEvents: 'none'
+          }}>
+            {targetSeat.obstructionLevel === 'heavy' ? '⚠️ Heavy Obstruction' : '⚠️ Partial View'}
+          </div>
+        )}
+
+        {/* Minimal Unobtrusive Branding Badge */}
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          left: '24px',
+          zIndex: 1000,
+          backgroundColor: 'rgba(27, 36, 48, 0.85)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(176, 141, 87, 0.35)',
+          borderRadius: '20px',
+          padding: '8px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          color: '#F4E8C1',
+          fontFamily: '"Inter", sans-serif',
+          fontSize: '13px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+          pointerEvents: 'auto'
+        }}>
+          <span style={{ fontWeight: 700, color: '#B08D57', fontFamily: '"Fraunces", serif' }}>Sightline 3D</span>
+          <span style={{ color: 'rgba(244, 232, 193, 0.3)' }}>•</span>
+          <span style={{ color: '#E8E4DA', fontWeight: 600 }}>Seat {targetSeat?.id}</span>
+          <a 
+            href="#experience" 
+            style={{
+              marginLeft: '6px',
+              color: '#4CC9F0',
+              textDecoration: 'none',
+              fontWeight: 600,
+              fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            Explore Venue ➔
+          </a>
+        </div>
+      </>
+    );
+  }
 
   // Resolve display seat
   let displaySeat = null;
@@ -404,8 +522,73 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
 
   return (
     <>
+      {/* Toast Notification Banner */}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 99999,
+          backgroundColor: 'rgba(27, 36, 48, 0.95)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid #4CC9F0',
+          borderRadius: '12px',
+          padding: '10px 20px',
+          color: '#4CC9F0',
+          fontSize: '14px',
+          fontWeight: 600,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Preset Selector Control */}
       <PresetSelector />
+
+      {/* Share This Seat Button (POV Mode - Top Right) */}
+      {status === 'pov' && targetSeat && !isBookingModalOpen && !isTicketScreenOpen && (
+        <button
+          onClick={handleShareSeat}
+          style={{
+            position: 'fixed',
+            top: '24px',
+            right: '24px',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: 'rgba(27, 36, 48, 0.85)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(176, 141, 87, 0.4)',
+            borderRadius: '12px',
+            padding: '10px 16px',
+            color: '#F4E8C1',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            transition: 'all 0.2s ease',
+            outline: 'none'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.95)';
+            e.currentTarget.style.borderColor = '#B08D57';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.85)';
+            e.currentTarget.style.borderColor = 'rgba(176, 141, 87, 0.4)';
+          }}
+        >
+          <span>🔗 Share Seat</span>
+        </button>
+      )}
 
       {/* Book for a Group Button (Orbit State - Top Left) */}
       {status === 'orbit' && !isBookingActive && !isGroupSelectionActive && (
