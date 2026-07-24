@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { OrbitControls, Environment, useProgress } from '@react-three/drei';
 import CameraController from './CameraController';
 import RoomShell from './RoomShell';
-import SeatingLayout from './SeatingLayout';
+import SeatingLayout, { checkIsNeighbor } from './SeatingLayout';
 import { useCameraState, useHoverState, CameraStateProvider } from './CameraState';
 
 function LoadingScreen() {
@@ -366,16 +366,7 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
   // Calculate nearby seats
   let nearbySeats = [];
   if (displaySeat) {
-    if (displaySeat.section === 'table') {
-      nearbySeats = seats.filter(s => s.tableId === displaySeat.tableId && s.id !== displaySeat.id);
-    } else {
-      nearbySeats = seats.filter(s => 
-        s.section === displaySeat.section && 
-        Math.abs(s.row - displaySeat.row) <= 1 && 
-        Math.abs(s.relativeCol - displaySeat.relativeCol) <= 1 && 
-        s.id !== displaySeat.id
-      ).slice(0, 6); // short list
-    }
+    nearbySeats = seats.filter(s => checkIsNeighbor(s, displaySeat)).slice(0, 6);
   }
 
   const panelsVisible = !!displaySeat;
