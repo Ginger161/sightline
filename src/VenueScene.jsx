@@ -240,12 +240,78 @@ function PresetSelector() {
       ref={dropdownRef}
       style={{
         position: 'fixed',
-        top: '24px',
-        left: '24px',
+        bottom: '24px',
+        right: '24px',
         zIndex: 1000,
         pointerEvents: 'auto'
       }}
     >
+      {/* Expanded Dropdown Menu Panel (Expands Upward) */}
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
+            right: 0,
+            left: 'auto',
+            minWidth: '210px',
+            backgroundColor: 'rgba(27, 36, 48, 0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(176, 141, 87, 0.35)',
+            borderRadius: '12px',
+            padding: '6px',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px'
+          }}
+        >
+          {presetsList.map(p => {
+            const isActive = p.id === activePreset;
+            return (
+              <button
+                key={p.id}
+                onClick={() => handleSelect(p.id)}
+                style={{
+                  backgroundColor: isActive ? 'rgba(176, 141, 87, 0.15)' : 'transparent',
+                  border: 'none',
+                  borderLeft: isActive ? '3px solid #C19D67' : '3px solid transparent',
+                  borderRadius: '6px',
+                  padding: '10px 14px',
+                  color: isActive ? '#F4E8C1' : '#A0AABF',
+                  fontSize: '13px',
+                  fontWeight: isActive ? '600' : '400',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.color = '#F4E8C1';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#A0AABF';
+                  }
+                }}
+              >
+                <span>{p.label}</span>
+                {isActive && (
+                  <span style={{ fontSize: '11px', color: '#C19D67' }}>✓</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Collapsed Dropdown Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -273,71 +339,6 @@ function PresetSelector() {
           ▼
         </span>
       </button>
-
-      {/* Expanded Dropdown Menu Panel */}
-      {isOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: 0,
-            minWidth: '210px',
-            backgroundColor: 'rgba(27, 36, 48, 0.95)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(176, 141, 87, 0.35)',
-            borderRadius: '12px',
-            padding: '6px',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '2px'
-          }}
-        >
-          {presetsList.map(p => {
-            const isActive = p.id === activePreset;
-            return (
-              <button
-                key={p.id}
-                onClick={() => handleSelect(p.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justify: 'space-between',
-                  width: '100%',
-                  textAlign: 'left',
-                  backgroundColor: isActive ? 'rgba(176, 141, 87, 0.2)' : 'transparent',
-                  color: isActive ? '#F4E8C1' : '#A09A8F',
-                  border: 'none',
-                  borderLeft: isActive ? '3px solid #C19D67' : '3px solid transparent',
-                  borderRadius: '8px',
-                  padding: '10px 12px',
-                  fontSize: '13px',
-                  fontWeight: isActive ? '600' : '400',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  outline: 'none'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                    e.currentTarget.style.color = '#E2D9C5';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#A09A8F';
-                  }
-                }}
-              >
-                <span>{p.label}</span>
-                {isActive && <span style={{ fontSize: '11px', color: '#C19D67' }}>✓</span>}
-              </button>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
@@ -406,14 +407,14 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
       {/* Preset Selector Control */}
       <PresetSelector />
 
-      {/* Book for a Group Button (Orbit State) */}
+      {/* Book for a Group Button (Orbit State - Top Left) */}
       {status === 'orbit' && !isBookingActive && !isGroupSelectionActive && (
         <button
           onClick={() => setIsGroupSizeModalOpen(true)}
           style={{
             position: 'fixed',
             top: '24px',
-            left: '230px',
+            left: '24px',
             zIndex: 1000,
             display: 'flex',
             alignItems: 'center',
@@ -673,12 +674,15 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
         </div>
       </div>
 
-      {/* Single Seat Booking Button */}
+      {/* Single Seat Booking Button (POV State - Bottom Right Offset) */}
       {status === 'pov' && targetSeat && !isBookingActive && targetSeat.status === 'available' && !isBookingModalOpen && !isTicketScreenOpen && (
         <button
-          className="action-btn-br glass-dark"
+          className="glass-dark"
           onClick={() => setIsBookingModalOpen(true)}
           style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '225px',
             border: '1px solid rgba(176, 141, 87, 0.25)',
             color: '#F7F4EE',
             padding: '12px 24px',
