@@ -44,22 +44,24 @@ export default function LandingPage() {
         
         <h1 style={{
           fontFamily: '"Fraunces", serif',
-          fontSize: 'clamp(40px, 6vw, 64px)',
+          fontSize: 'clamp(32px, 8vw, 64px)',
           fontWeight: 600,
           lineHeight: 1.1,
           margin: 0,
           color: '#1B2430',
-          maxWidth: '800px'
+          maxWidth: '800px',
+          width: '100%'
         }}>
           See your seat before you book it.
         </h1>
         
         <p style={{
-          fontSize: 'clamp(18px, 2vw, 22px)',
+          fontSize: 'clamp(16px, 4vw, 22px)',
           lineHeight: 1.5,
           color: '#4A5568',
           maxWidth: '600px',
-          margin: '0 0 16px 0'
+          margin: '0 0 16px 0',
+          width: '100%'
         }}>
           Stop guessing from flat charts. Explore the venue, check the exact sightlines, and buy with total confidence.
         </p>
