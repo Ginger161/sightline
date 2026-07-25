@@ -238,13 +238,7 @@ function PresetSelector() {
   return (
     <div 
       ref={dropdownRef}
-      style={{
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        zIndex: 1000,
-        pointerEvents: 'auto'
-      }}
+      className="preset-selector-container"
     >
       {/* Expanded Dropdown Menu Panel (Expands Upward) */}
       {isOpen && (
@@ -548,8 +542,7 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
         </div>
       )}
 
-      {/* Preset Selector Control */}
-      <PresetSelector />
+      {/* Preset Selector moved to bottom-action-bar */}
 
       {/* Share This Seat Button (POV Mode - Top Right) */}
       {status === 'pov' && targetSeat && !isBookingModalOpen && !isTicketScreenOpen && (
@@ -714,45 +707,7 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
         }}
       />
 
-      {/* Back to Overview Button */}
-      {status === 'pov' && (
-        <button
-          className="action-btn-bl glass-dark"
-          onClick={returnToOverview}
-          style={{
-            border: '1px solid rgba(176, 141, 87, 0.25)',
-            color: '#B08D57',
-            width: '48px',
-            height: '48px',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-            zIndex: 1000,
-            padding: 0,
-            transition: 'all 0.2s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.85)';
-            e.currentTarget.style.color = '#d1a86b';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.65)';
-            e.currentTarget.style.color = '#B08D57';
-          }}
-          aria-label="Back to Overview"
-          title="Back to Overview"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-        </button>
-      )}
+      {/* Back to Overview Button moved to bottom-action-bar */}
 
       {/* Obstruction Warning Pill in POV */}
       {status === 'pov' && targetSeat && targetSeat.obstructionLevel && targetSeat.obstructionLevel !== 'clear' && (
@@ -776,7 +731,8 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
         </div>
       )}
 
-      {/* LEFT panel — Seat Details */}
+      <div className="bottom-ui-container">
+        {/* LEFT panel — Seat Details */}
       <div 
         ref={leftPanelRef}
         className="panel-left glass-dark"
@@ -857,44 +813,90 @@ function SceneUI({ leftPanelRef, rightPanelRef }) {
         </div>
       </div>
 
-      {/* Single Seat Booking Button (POV State - Bottom Right Offset) */}
-      {status === 'pov' && targetSeat && !isBookingActive && targetSeat.status === 'available' && !isBookingModalOpen && !isTicketScreenOpen && (
-        <button
-          className="glass-dark"
-          onClick={() => setIsBookingModalOpen(true)}
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '225px',
-            border: '1px solid rgba(176, 141, 87, 0.25)',
-            color: '#F7F4EE',
-            padding: '12px 24px',
-            borderRadius: '24px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-            zIndex: 1000,
-            transition: 'all 0.2s ease',
-            fontFamily: '"Inter", sans-serif',
-            fontSize: '16px',
-            fontWeight: 500,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.85)';
-            e.currentTarget.style.borderColor = '#B08D57';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.65)';
-            e.currentTarget.style.borderColor = 'rgba(176, 141, 87, 0.25)';
-          }}
-        >
-          Book This Seat
-        </button>
-      )}
+      <div className="bottom-action-bar">
+        <div className="bottom-action-left">
+          {/* Back to Overview Button */}
+          {status === 'pov' && (
+            <button
+              className="action-btn-bl glass-dark"
+              onClick={returnToOverview}
+              style={{
+                border: '1px solid rgba(176, 141, 87, 0.25)',
+                color: '#B08D57',
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                zIndex: 1000,
+                padding: 0,
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.85)';
+                e.currentTarget.style.color = '#d1a86b';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.65)';
+                e.currentTarget.style.color = '#B08D57';
+              }}
+              aria-label="Back to Overview"
+              title="Back to Overview"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+            </button>
+          )}
+        </div>
+
+        <div className="bottom-action-right">
+          {/* Single Seat Booking Button (POV State - Bottom Right Offset) */}
+          {status === 'pov' && targetSeat && !isBookingActive && targetSeat.status === 'available' && !isBookingModalOpen && !isTicketScreenOpen && (
+            <button
+              className="glass-dark book-seat-btn"
+              onClick={() => setIsBookingModalOpen(true)}
+              style={{
+                border: '1px solid rgba(176, 141, 87, 0.25)',
+                color: '#F7F4EE',
+                padding: '12px 24px',
+                borderRadius: '24px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                zIndex: 1000,
+                transition: 'all 0.2s ease',
+                fontFamily: '"Inter", sans-serif',
+                fontSize: '16px',
+                fontWeight: 500,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.85)';
+                e.currentTarget.style.borderColor = '#B08D57';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.backgroundColor = 'rgba(27, 36, 48, 0.65)';
+                e.currentTarget.style.borderColor = 'rgba(176, 141, 87, 0.25)';
+              }}
+            >
+              Book This Seat
+            </button>
+          )}
+          
+          <PresetSelector />
+        </div>
+      </div>
+      </div>
 
       {/* View Ticket Button */}
       {isBookingActive && !isTicketScreenOpen && (

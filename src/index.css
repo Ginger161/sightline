@@ -44,6 +44,20 @@ body {
   right: 40px;
 }
 
+.book-seat-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 225px;
+  z-index: 1000;
+}
+
+.preset-selector-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+}
+
 .modal-container {
   padding: 40px;
 }
@@ -102,11 +116,12 @@ body {
   }
 
   .panel-left {
+    position: relative !important;
     top: auto !important;
-    bottom: 100px !important;
-    left: 20px !important;
-    right: 20px !important;
-    width: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
     transform: none !important;
   }
   
@@ -115,8 +130,27 @@ body {
   }
 
   .action-btn-bl {
-    bottom: 20px !important;
-    left: 20px !important;
+    position: relative !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+  }
+
+  .book-seat-btn {
+    position: relative !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+  }
+
+  .preset-selector-container {
+    position: relative !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
   }
 
   .action-btn-br {
@@ -137,3 +171,50 @@ body {
     padding: 24px 20px !important;
   }
 }
+
+/* Bottom UI layout containers for mobile robustness */
+.bottom-ui-container {
+  /* On desktop, this container doesn't do much since children are fixed */
+}
+
+@media (max-width: 768px) {
+  .bottom-ui-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 12px;
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  .bottom-action-bar {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    pointer-events: none;
+    gap: 8px;
+  }
+
+  .bottom-action-bar > * {
+    pointer-events: auto;
+  }
+
+  .bottom-action-left {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .bottom-action-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+}
+
